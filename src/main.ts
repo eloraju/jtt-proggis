@@ -1,58 +1,56 @@
 // Import required depencies
-import express, { Request, Response } from 'express';
+import express, { Request, Response, json } from 'express';
 
-enum Languages {
-    English = 'en',
-    Finnish = 'fi'
-};
-
-function getGreeting(lan: Languages) {
-    switch (lan) {
-        case Languages.English: return 'Hello';
-        case Languages.Finnish: return 'Moro';
-        default: throw Error('Unsupported language');
-    }
-}
-
-// Create server
 const server = express();
 const PORT = 9000;
 
-// Create listeners for supported protocols
+server.use(json())
 
-// /morotin
-//server.get('/morotin',(req: Request, res: Response) => {
-//    const asdf = req.params.language;
-//    res.statusCode = 200;
-//    res.send('Moro!');
-//});
+const db: any = {
+  worlds:{}
+};
 
-// /morotin?lan=en
-server.get('/morotin', (req: Request, res: Response) => {
-    // Assumption: The user will ALWAYS provide us with a 
-    // language option
+const world = {
+  create: (name: string) => {
+    db.worlds[name] = {
+      name,
+      created: new Date().toISOString(),
+      id: Date.now()
+    };
 
-    try {
-        const lan = req.query.lan as Languages;
-        const greeting = getGreeting(lan);
-        res.statusCode = 200;
-        res.send(greeting);
-    } catch (e) {
-        res.statusCode = 500;
-        res.send(e.message);
-    }
+    return `Should create world ${name}`
+  },
 
+  list: () => {
+    return Object.keys(db.worlds).join("\n");
+  },
+
+  delete: (name: string) => {
+      delete db.worlds[name];
+      return true;
+  }
+};
+
+const objects: any = {
+  world: world
+}
+
+server.post('/api', (req:Request, res: Response) => {
+  const command = req.body.cmd || 'error'
+  const [object, action]:[string, string] = command.split(".");
+
+  const args = req.body.args || {};
+
+  try {
+    res.send(objects[object][action](args));
+  } catch (err) {
+    res.send(err)
+  }
 });
 
-// /morotin/en
-//server.get('/morotin/:lan',(req: Request, res: Response) => {
-//    const asdf = req.params.language;
-//    res.statusCode = 200;
-//    res.send('Moro!');
-//});
 
 // Start the server and start listening
 server.listen(PORT, () => {
-    // Establish DB connection
-    console.log(`Listening on port ${PORT}`);
+  // Establish DB connection
+  console.log(`Listening on port ${PORT}`);
 });
