@@ -36,13 +36,15 @@ const world = {
 
 const user: any = {
   create: ()=>{},
-  edit: ()=>{}
+  edit: ()=>{},
+  resetPassword: ()=>{},
 }
 
 const character: any = {
   create: ()=>{},
   edit: ()=>{},
-  kill: ()=>{}
+  kill: ()=>{},
+  getFriends: ()=>{},
 }
 
 const util: any = {
