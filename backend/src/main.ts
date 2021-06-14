@@ -12,15 +12,19 @@ const db: any = {
   worlds:{}
 };
 
+interface WorldCreateArgs {
+  name :string
+}
+
 const world = {
-  create: (name: string) => {
+  create: ({ name }: WorldCreateArgs) => {
     db.worlds[name] = {
       name,
       created: new Date().toISOString(),
-      id: Date.now()
+      id: Date.now(),
     };
 
-    return `Should create world ${name}`
+    return "Creating world with name: " + JSON.stringify(name);
   },
 
   list: () => {
@@ -28,10 +32,10 @@ const world = {
   },
 
   delete: (name: string) => {
-      delete db.worlds[name];
-      return true;
+    delete db.worlds[name];
+    return true;
   },
-  rename: (newName: string) => {}
+  rename: (newName: string) => {},
 };
 
 const user: any = {
@@ -57,7 +61,7 @@ const util: any = {
         commandsList[object].push(action);
       })
     });
-    return JSON.stringify(commandsList);
+    return commandsList;
   }
 }
 
@@ -70,12 +74,12 @@ const commands: any = {
 
 server.post('/api', (req:Request, res: Response) => {
   const command = req.body.cmd || 'error'
-  const [object, action]:[string, string] = command.split(".");
+  const [object, action]: [string, string] = command.split(".");
 
   const args = req.body.args || {};
 
   try {
-    res.send(commands[object][action](args));
+    res.send(JSON.stringify(commands[object][action](args)));
   } catch (err) {
     res.send(err)
   }
